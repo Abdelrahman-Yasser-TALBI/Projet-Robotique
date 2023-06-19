@@ -1,0 +1,124 @@
+#include <VL6180X.h>
+#include <Servo.h>
+#include <Wire.h>
+
+Servo gauche, droite;
+
+VL6180X sensor1, sensor2, sensor3;
+
+unsigned int c1 = 0, c2 = 0, c3 = 0;
+
+int pos = 0;
+
+void setup() {
+
+  gauche.attach(6);
+  droite.attach(4);
+
+  delay(200);
+  Serial.begin(9600);
+  Wire.begin();
+  pinMode(3, OUTPUT);
+  pinMode(4, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(0, OUTPUT);
+  pinMode(2, OUTPUT);
+  pinMode(1, OUTPUT);
+  pinMode(8, OUTPUT);
+
+  digitalWrite(3, LOW);
+  digitalWrite(4, LOW);
+  digitalWrite(5, LOW);
+  digitalWrite(2, LOW);
+  digitalWrite(1, LOW);
+  digitalWrite(0, LOW);
+  digitalWrite(8, LOW);
+
+
+
+  digitalWrite(2, HIGH); //capteur droite
+  delay(150);
+  sensor2.init();
+  Serial.println("03");
+  delay(100);
+  sensor2.setAddress(0x49);
+  Serial.println("04");
+  sensor2.configureDefault();
+
+  digitalWrite(3, HIGH); //capteur milieu
+  delay(150);
+  sensor1.init();
+  Serial.println("01");
+  delay(100);
+  sensor1.setAddress(0x39);
+  Serial.println("02");
+  sensor1.configureDefault();
+
+  digitalWrite(8, HIGH); //capteur gauche
+  delay(150);
+  sensor3.init();
+  Serial.println("05");
+  delay(100);
+  sensor3.setAddress(0x59);
+  Serial.println("06");
+  sensor3.configureDefault();
+
+  Serial.println("adresses fixées");
+
+  droite.write(180);
+  gauche.write(180);
+
+}
+
+void loop() {
+
+  c1 = sensor1.readRangeSingleMillimeters();
+  Serial.println("Capteur 1: " + String(c1));
+
+  c2 = sensor2.readRangeSingleMillimeters();
+  Serial.println("Capteur 2: " + String(c2));
+
+  c3 = sensor3.readRangeSingleMillimeters();
+  Serial.println("Capteur 3: " + String(c3));
+
+
+
+  if (c1 < 145)
+  {
+    if (c3 < c2) //tourne droite
+    {
+      droite.write(90);
+      gauche.write(180);
+    }
+    if (c3 > c2) //tourne gauche
+    {
+      droite.write(0);
+      gauche.write(90);
+    }
+  }
+  else
+  {
+    droite.write(0);
+    gauche.write(180);
+    if (c3 < c2)
+    {
+      if (c3 < 35)
+      {
+        droite.write(0);
+        gauche.write(160);
+      }
+    }
+    if (c3 > c2)
+    {
+      if (c2 < 35)
+      {
+        droite.write(20);
+        gauche.write(180);
+      }
+    }
+  }
+
+
+  delay(50);
+
+}
